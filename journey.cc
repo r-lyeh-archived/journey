@@ -1,3 +1,2 @@
-#define JOURNEY_BUILD_TEST
+#define JOURNEY_BUILD_DEMO
 #include "journey.hpp"
-
