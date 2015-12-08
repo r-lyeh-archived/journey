@@ -76,5 +76,6 @@ int main( int argc, const char **argv ) {
 ```
 
 ### Changelog
+- v2.0.1 (2015/12/08): Fix compilation warnings (un/signed warnings)
 - v2.0.0 (2015/12/07): More compact file format; fixes
 - v1.0.0 (2015/12/05): Initial commit

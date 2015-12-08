@@ -46,20 +46,18 @@
 #include <map>
 #include <string>
 
-#define JOURNEY_VERSION "2.0.0" /* (2015/12/07) More compact file format; fixes
+#define JOURNEY_VERSION "2.0.1" /* (2015/12/08) Fix compilation warnings (un/signed warnings)
+#define JOURNEY_VERSION "2.0.0" // (2015/12/07) More compact file format; fixes
 #define JOURNEY_VERSION "1.0.0" // (2015/12/05) Initial commit */
 
 class journey {
-    std::string journal;
-    uint64_t magic_right_endian = 0x3179656E72756F6A; // 'journey1'
-    uint64_t magic_wrong_endian = 0x6A6F75726E657931; // 'journey1' swapped
+public:
+
     struct entry {
         uint64_t offset;
         uint64_t size;
         uint64_t stamp;
     };
-    std::map< std::string, entry > toc;
-public:
 
     journey()
     {}
@@ -97,7 +95,7 @@ public:
                 break;
             }
 
-            ifs.seekg( -8*5-filelen, ifs.cur );
+            ifs.seekg( -8*5-int64_t(filelen), ifs.cur );
             skip_padding();
 
             fname.resize( namelen );
@@ -119,13 +117,17 @@ public:
             }
             skip_padding();
 
-            ifs.seekg( -filelen, ifs.cur );
+            ifs.seekg( -int64_t(filelen), ifs.cur );
             count ++;
         }
         if( debugstream ) {
             *debugstream << "---" << std::endl;
         }
         return ifs.good() && count > 0;
+    }
+
+    std::map<std::string, entry> get_toc() const {
+        return toc;
     }
 
     template<typename T>
@@ -159,14 +161,14 @@ public:
             };
             if( ofs.good() ) {
                 uint64_t namelen = filename.size(), datalen = len;
-                uint64_t filelen = -uint64_t( ofs.tellp() ), magic = magic_right_endian;
+                uint64_t filelen = -int64_t( ofs.tellp() ), magic = magic_right_endian;
                 write_padding();
                 ofs.write( filename.c_str(), namelen );
                 ofs.write( "\0", 1 );
                 write_padding();
                 ofs.write( (const char *)ptr, datalen );
                 write_padding();
-                filelen += uint64_t(ofs.tellp());
+                filelen += int64_t(ofs.tellp());
                 ofs.write( (const char *)&stamp,   8 );
                 ofs.write( (const char *)&namelen, 8 );
                 ofs.write( (const char *)&datalen, 8 );
@@ -197,6 +199,12 @@ public:
         }
         return true;
     }
+
+    protected:
+    std::string journal;
+    uint64_t magic_right_endian = 0x3179656E72756F6A; // 'journey1'
+    uint64_t magic_wrong_endian = 0x6A6F75726E657931; // 'journey1' swapped
+    std::map< std::string, entry > toc;
 };
 
 
